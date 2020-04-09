@@ -1,1 +1,1 @@
-worker: python proectx.py
+worker: python razuxi.py
