@@ -11,3 +11,5 @@ out
 gen
 venv
 .gitignore
+fast.py
+test.csv
