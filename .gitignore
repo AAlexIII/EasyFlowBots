@@ -13,3 +13,5 @@ venv
 .gitignore
 fast.py
 test.csv
+1otchet.csv
+Otchet.csv
