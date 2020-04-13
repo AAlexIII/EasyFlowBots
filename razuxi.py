@@ -69,6 +69,17 @@ def reaction(call):
         # blocks))
         bot.edit_message_text('Кому бы вы хотели направить свое рац. предложение?', chat_id=who,
                               message_id=mes, reply_markup=make_keyboard(blocks))
+    elif c == 'результаты':
+        l = ['Фамилия: ', 'Табельный номер: ', 'Направление: ', 'Описание проблемы: ', 'Предложение по решению: ']
+        status = pd.read_csv('data_base.csv', sep=';', header=[0], encoding='cp1251')
+        s = ''
+        for index, row in status.iterrows():
+            s += l[0] + str(row['Фамилия']) + '\n' + l[1] + str(row['Табельный номер']) + '\n' + l[2] + str(
+                row['Направление']) + '\n' + l[3] + str(row['Описание проблемы']) + '\n' + l[4] + str(
+                row['Предложение по решению']) + '\n\n'
+        bot.send_message(who, s)
+        start_menu = {'Подать Рац предоложение': 'подача', 'Быстро подать': 'подача фаст', 'Посмотреть': "результаты"}
+        bot.send_message(who, "Выбирете дальнейшие действия", reply_markup=make_keyboard(start_menu))
     elif c[0] == '0':
         time = pd.read_csv('files/time.csv', sep=';', header=[0], encoding='cp1251')
         time = time.loc[time['id'] != who]
@@ -105,7 +116,7 @@ def reaction(call):
         # time = time.drop(pd.where(time['id'] == who)[0])
         time = time.loc[time['id'] != who]
         time.to_csv('files/time.csv', sep=';', index=False, encoding='cp1251')
-        start_menu = {'Подать Рац предоложение': 'подача', 'Быстро подать': 'подача фаст'}
+        start_menu = {'Подать Рац предоложение': 'подача', 'Быстро подать': 'подача фаст', 'Посмотреть': "результаты"}
         # bot.send_message(who, 'Ваше предложение записанно', reply_markup=make_keyboard(start_menu))
         bot.edit_message_text('Ваше предложение записанно', chat_id=who,
                               message_id=mes, reply_markup=make_keyboard(start_menu))
@@ -156,7 +167,8 @@ def reaction(call):
 def start(message):
     who = message.chat.id
     status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
-    start_menu = {'Подать Рац предоложение': 'подача', 'Быстро подать': 'подача фаст'}
+    start_menu = {'Подать Рац предоложение': 'подача', 'Быстро подать': 'подача фаст',
+                  'Посмотреть': "результаты"}
     if who not in status['id'].values:
         bot.send_message(message.chat.id, 'Напишите вашу фамилию')
     else:
@@ -170,7 +182,8 @@ def send_mes(message):
     t = message.text
     who = message.chat.id
     status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
-    start_menu = {'Подать по своему блоку': 'подача', 'Подать по чужому блоку': 'подача фаст'}
+    start_menu = {'Подать по своему блоку': 'подача', 'Подать по чужому блоку': 'подача фаст',
+                  'Посмотреть': "результаты"}
 
     # Todo: возможноcть копировать из статуса значения
     # Todo: Фамилия и имя
@@ -185,7 +198,7 @@ def send_mes(message):
                                        int(people.loc[people['Фамилия'] == t.strip()]['Табельный номер'].values[0]),
                                        people.loc[people['Фамилия'] == t.strip()]['Место работы'].values[0], 0]
             status.to_csv('files/status.csv', sep=';', index=False, encoding='cp1251')
-            n =people.loc[people['Фамилия'] == t.strip()]['Место работы'].values[0]
+            n = people.loc[people['Фамилия'] == t.strip()]['Место работы'].values[0]
             bot.send_message(who,
                              f"Приветсвую, {names[0]} {n}",
                              reply_markup=make_keyboard(start_menu))
