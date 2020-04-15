@@ -8,6 +8,34 @@ redactor = str('9b2398&DC8b0e')
 no_value = str('dc34srefi*b23')
 
 
+def make_keyboard(d: dict):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    for name, call in d.items():
+        keyboard.add(InlineKeyboardButton(name, callback_data=call))
+    return keyboard
+
+
+def menu(who):
+    start_menu = {'Подать по своему блоку': 'подача', 'Подать по чужому блоку': 'подача фаст',
+                  "Оценка": 'оценкалайт', 'Посмотреть': "результаты"}
+    bot.send_message(who, "Выбирете дальнейшие действия", reply_markup=make_keyboard(start_menu))
+
+
+def make_keyboard_2(type=0):
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(InlineKeyboardButton('👍🏻', callback_data='like'),
+                 InlineKeyboardButton('👎🏻', callback_data='dislike'))
+    if type == 1:
+        keyboard.add(InlineKeyboardButton('👉🏻', callback_data='next'))
+    elif type == 2:
+        keyboard.add(InlineKeyboardButton('👈🏻', callback_data='last'))
+    elif type == 0:
+        keyboard.add(InlineKeyboardButton('👉🏻', callback_data='next'),
+                     InlineKeyboardButton('👈🏻', callback_data='last'))
+    keyboard.add(InlineKeyboardButton("Закончить оценку", callback_data='endlook'))
+    return keyboard
+
+
 def prover(who):
     time = pd.read_csv('files/time.csv', sep=';', header=[0], encoding='cp1251')
     status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
@@ -23,15 +51,25 @@ def prover(who):
     bot.send_message(who, 'Всё ли представленно верно?', reply_markup=make_keyboard(end))
 
 
-def menu():
-    pass
-
-
-def make_keyboard(d: dict):
-    keyboard = InlineKeyboardMarkup(row_width=1)
-    for name, call in d.items():
-        keyboard.add(InlineKeyboardButton(name, callback_data=call))
-    return keyboard
+def show_res(mes, who):
+    status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
+    data = pd.read_csv('data_base.csv', sep=';', header=[0], encoding='cp1251')
+    which = status.loc[status['id'] == who]['Статус'].values[0]
+    if which == len(data) - 1:
+        q = 2
+    elif which == 0:
+        q = 1
+    else:
+        q = 0
+    l = ['Фамилия: ', 'Табельный номер: ', 'Направление: ', 'Описание проблемы: ', 'Предложение по решению: ']
+    s = ''
+    for index, row in data.iterrows():
+        if index == which:
+            s += str(index + 1) + ' из ' + str(len(data)) + '\n' + l[0] + str(row['Фамилия']) + '\n' + l[1] + str(
+                row['Табельный номер']) + '\n' + l[2] + str(row['Направление']) + '\n' + l[3] + str(
+                row['Описание проблемы']) + '\n' + l[4] + str(row['Предложение по решению']) + '\n\n'
+    bot.edit_message_text(s, chat_id=who,
+                          message_id=mes, reply_markup=make_keyboard_2(type=q))
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -46,9 +84,8 @@ def reaction(call):
         blok = status.loc[status['id'] == who]['Родной Блок'].values[0]
         time.loc[len(time)] = [int(who), blok, no_value, no_value]
         time.to_csv('files/time.csv', sep=';', index=False, encoding='cp1251')
-        # bot.send_message(who, 'Опишите проблему в одном сообщении:')
-        bot.edit_message_text('Опишите проблему в одном сообщении:', chat_id=who,
-                              message_id=mes)
+        # bot.send_message(who, 'Егор С ДР 🎊🎉')
+        bot.edit_message_text('Опишите проблему в одном сообщении:', chat_id=who, message_id=mes)
     elif c == 'подача':
         # Todo: изменить названия
         blocks = {
@@ -70,16 +107,19 @@ def reaction(call):
         bot.edit_message_text('Кому бы вы хотели направить свое рац. предложение?', chat_id=who,
                               message_id=mes, reply_markup=make_keyboard(blocks))
     elif c == 'результаты':
-        l = ['Фамилия: ', 'Табельный номер: ', 'Направление: ', 'Описание проблемы: ', 'Предложение по решению: ']
+        l = ['Фамилия: ', 'Табельный номер: ', 'Направление: ', 'Описание проблемы: ', 'Предложение по решению: ',
+             'За принятие: ', 'Против принятия: ']
         status = pd.read_csv('data_base.csv', sep=';', header=[0], encoding='cp1251')
         s = ''
         for index, row in status.iterrows():
             s += l[0] + str(row['Фамилия']) + '\n' + l[1] + str(row['Табельный номер']) + '\n' + l[2] + str(
                 row['Направление']) + '\n' + l[3] + str(row['Описание проблемы']) + '\n' + l[4] + str(
-                row['Предложение по решению']) + '\n\n'
+                row['Предложение по решению']) + '\n' + l[5] + str(row['За принятие']) + '\n' + l[6] + str(
+                row['Против принятия']) + '\n\n'
         bot.send_message(who, s)
-        start_menu = {'Подать Рац предоложение': 'подача', 'Быстро подать': 'подача фаст', 'Посмотреть': "результаты"}
-        bot.send_message(who, "Выбирете дальнейшие действия", reply_markup=make_keyboard(start_menu))
+        menu(who)
+    elif c == 'оценкалайт':
+        show_res(mes, who)
     elif c[0] == '0':
         time = pd.read_csv('files/time.csv', sep=';', header=[0], encoding='cp1251')
         time = time.loc[time['id'] != who]
@@ -111,15 +151,17 @@ def reaction(call):
         blok = time.loc[time['id'] == who]['Куда'].values[0]
         problem = time.loc[time['id'] == who]['Проблема'].values[0]
         idea = time.loc[time['id'] == who]['Идея'].values[0]
-        end.loc[len(end)] = [name, int(num), blok, problem, idea]
+        end.loc[len(end)] = [name, int(num), blok, problem, idea, int(0), int(0)]
         end.to_csv('data_base.csv', sep=';', index=False, encoding='cp1251')
         # time = time.drop(pd.where(time['id'] == who)[0])
         time = time.loc[time['id'] != who]
         time.to_csv('files/time.csv', sep=';', index=False, encoding='cp1251')
-        start_menu = {'Подать Рац предоложение': 'подача', 'Быстро подать': 'подача фаст', 'Посмотреть': "результаты"}
+        start_menu = {'Подать по своему блоку': 'подача', 'Подать по чужому блоку': 'подача фаст',
+                      "Оценка": 'оценкалайт', 'Посмотреть': "результаты"}
         # bot.send_message(who, 'Ваше предложение записанно', reply_markup=make_keyboard(start_menu))
         bot.edit_message_text('Ваше предложение записанно', chat_id=who,
-                              message_id=mes, reply_markup=make_keyboard(start_menu))
+                              message_id=mes)
+        menu(who)
 
     elif c == 'notend':
         change = {'Решение проблемы': 'решение', 'Проблема': 'проблема', 'Блок': 'workplace', 'Фамилия': 'фамилия',
@@ -162,13 +204,56 @@ def reaction(call):
     elif c == 'табельный номер':
         bot.send_message(who, 'беда')
 
+    elif c == "like":
+        bot.answer_callback_query(call.id)
+        data = pd.read_csv('data_base.csv', sep=';', header=[0], encoding='cp1251')
+        status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
+        index = status.loc[status['id'] == who]['Статус'].values[0]
+        data.at[index, 'За принятие'] += 1
+        if status.loc[status['id'] == who]['Статус'].values[0] < len(data)-1:
+            status.loc[status['id'] == who, 'Статус'] += 1
+        data.to_csv('data_base.csv', sep=';', index=False, encoding='cp1251')
+        status.to_csv('files/status.csv', sep=';', index=False, encoding='cp1251')
+        show_res(mes, who)
+
+    elif c == 'dislike':
+        data = pd.read_csv('data_base.csv', sep=';', header=[0], encoding='cp1251')
+        status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
+        index = status.loc[status['id'] == who]['Статус'].values[0]
+        data.at[index, 'Против принятия'] -= 1
+        if status.loc[status['id'] == who]['Статус'].values[0] < len(data)-1:
+            status.loc[status['id'] == who, 'Статус'] += 1
+        data.to_csv('data_base.csv', sep=';', index=False, encoding='cp1251')
+        status.to_csv('files/status.csv', sep=';', index=False, encoding='cp1251')
+        bot.answer_callback_query(call.id)
+        show_res(mes, who)
+
+    elif c == 'next':
+        status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
+        status.loc[status['id'] == who, 'Статус'] += 1
+        status.to_csv('files/status.csv', sep=';', index=False, encoding='cp1251')
+        bot.answer_callback_query(call.id)
+        show_res(mes, who)
+
+    elif c == 'last':
+        status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
+        if status.loc[status['id'] == who][ 'Статус'].values[0] > 0:
+            status.loc[status['id'] == who, 'Статус'] -= 1
+        status.to_csv('files/status.csv', sep=';', index=False, encoding='cp1251')
+        bot.answer_callback_query(call.id)
+        show_res(mes, who)
+
+    elif c == 'endlook':
+        bot.answer_callback_query(call.id)
+        menu(who)
+
 
 @bot.message_handler(commands=['start'])
 def start(message):
     who = message.chat.id
     status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
-    start_menu = {'Подать Рац предоложение': 'подача', 'Быстро подать': 'подача фаст',
-                  'Посмотреть': "результаты"}
+    start_menu = {'Подать по своему блоку': 'подача', 'Подать по чужому блоку': 'подача фаст',
+                  "Оценка": 'оценкалайт', 'Посмотреть': "результаты"}
     if who not in status['id'].values:
         bot.send_message(message.chat.id, 'Напишите вашу фамилию')
     else:
@@ -183,7 +268,7 @@ def send_mes(message):
     who = message.chat.id
     status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
     start_menu = {'Подать по своему блоку': 'подача', 'Подать по чужому блоку': 'подача фаст',
-                  'Посмотреть': "результаты"}
+                  "Оценка": 'оценкалайт', 'Посмотреть': "результаты", "Оценить": 'оценкалайт'}
 
     # Todo: возможноcть копировать из статуса значения
     # Todo: Фамилия и имя
