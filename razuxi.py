@@ -16,8 +16,8 @@ def make_keyboard(d: dict):
 
 
 def menu(who):
-    start_menu = {'Подать по своему блоку': 'подача', 'Подать по чужому блоку': 'подача фаст',
-                  "Оценка": 'оценкалайт', 'Посмотреть': "результаты"}
+    start_menu = {'Подать по чужому блоку': 'подача', 'Подать по своему блоку': 'подача фаст',
+                  'Посмотреть': "результаты", "Оценить": 'оценкалайт'}
     bot.send_message(who, "Выбирете дальнейшие действия", reply_markup=make_keyboard(start_menu))
 
 
@@ -30,8 +30,8 @@ def make_keyboard_2(type=0):
     elif type == 2:
         keyboard.add(InlineKeyboardButton('👈🏻', callback_data='last'))
     elif type == 0:
-        keyboard.add(InlineKeyboardButton('👉🏻', callback_data='next'),
-                     InlineKeyboardButton('👈🏻', callback_data='last'))
+        keyboard.add(InlineKeyboardButton('👈🏻', callback_data='last'),
+                     InlineKeyboardButton('👉🏻', callback_data='next'))
     keyboard.add(InlineKeyboardButton("Закончить оценку", callback_data='endlook'))
     return keyboard
 
@@ -116,6 +116,7 @@ def reaction(call):
                 row['Направление']) + '\n' + l[3] + str(row['Описание проблемы']) + '\n' + l[4] + str(
                 row['Предложение по решению']) + '\n' + l[5] + str(row['За принятие']) + '\n' + l[6] + str(
                 row['Против принятия']) + '\n\n'
+        bot.answer_callback_query(call.id)
         bot.send_message(who, s)
         menu(who)
     elif c == 'оценкалайт':
@@ -156,8 +157,8 @@ def reaction(call):
         # time = time.drop(pd.where(time['id'] == who)[0])
         time = time.loc[time['id'] != who]
         time.to_csv('files/time.csv', sep=';', index=False, encoding='cp1251')
-        start_menu = {'Подать по своему блоку': 'подача', 'Подать по чужому блоку': 'подача фаст',
-                      "Оценка": 'оценкалайт', 'Посмотреть': "результаты"}
+        start_menu = {'Подать по чужому блоку': 'подача', 'Подать по своему блоку': 'подача фаст',
+                      'Посмотреть': "результаты", "Оценить": 'оценкалайт'}
         # bot.send_message(who, 'Ваше предложение записанно', reply_markup=make_keyboard(start_menu))
         bot.edit_message_text('Ваше предложение записанно', chat_id=who,
                               message_id=mes)
@@ -220,7 +221,7 @@ def reaction(call):
         data = pd.read_csv('data_base.csv', sep=';', header=[0], encoding='cp1251')
         status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
         index = status.loc[status['id'] == who]['Статус'].values[0]
-        data.at[index, 'Против принятия'] -= 1
+        data.at[index, 'Против принятия'] += 1
         if status.loc[status['id'] == who]['Статус'].values[0] < len(data)-1:
             status.loc[status['id'] == who, 'Статус'] += 1
         data.to_csv('data_base.csv', sep=';', index=False, encoding='cp1251')
@@ -252,8 +253,8 @@ def reaction(call):
 def start(message):
     who = message.chat.id
     status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
-    start_menu = {'Подать по своему блоку': 'подача', 'Подать по чужому блоку': 'подача фаст',
-                  "Оценка": 'оценкалайт', 'Посмотреть': "результаты"}
+    start_menu = {'Подать по чужому блоку': 'подача', 'Подать по своему блоку': 'подача фаст',
+                  'Посмотреть': "результаты", "Оценить": 'оценкалайт'}
     if who not in status['id'].values:
         bot.send_message(message.chat.id, 'Напишите вашу фамилию')
     else:
@@ -267,8 +268,8 @@ def send_mes(message):
     t = message.text
     who = message.chat.id
     status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
-    start_menu = {'Подать по своему блоку': 'подача', 'Подать по чужому блоку': 'подача фаст',
-                  "Оценка": 'оценкалайт', 'Посмотреть': "результаты", "Оценить": 'оценкалайт'}
+    start_menu = {'Подать по чужому блоку': 'подача', 'Подать по своему блоку': 'подача фаст',
+                  'Посмотреть': "результаты", "Оценить": 'оценкалайт'}
 
     # Todo: возможноcть копировать из статуса значения
     # Todo: Фамилия и имя
