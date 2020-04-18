@@ -32,6 +32,11 @@ def make_keyboard_2(type=0):
     elif type == 0:
         keyboard.add(InlineKeyboardButton('👈🏻', callback_data='last'),
                      InlineKeyboardButton('👉🏻', callback_data='next'))
+    elif type == 3:
+        k = InlineKeyboardMarkup()
+        k.add(InlineKeyboardButton('👈🏻', callback_data='last'))
+        return k
+
     keyboard.add(InlineKeyboardButton("Закончить оценку", callback_data='endlook'))
     return keyboard
 
@@ -55,12 +60,6 @@ def show_res(mes, who):
     status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
     data = pd.read_csv('data_base.csv', sep=';', header=[0], encoding='cp1251')
     which = status.loc[status['id'] == who]['Статус'].values[0]
-    if which == len(data) - 1:
-        q = 2
-    elif which == 0:
-        q = 1
-    else:
-        q = 0
     l = ['Фамилия: ', 'Табельный номер: ', 'Направление: ', 'Описание проблемы: ', 'Предложение по решению: ']
     s = ''
     for index, row in data.iterrows():
@@ -68,6 +67,12 @@ def show_res(mes, who):
             s += str(index + 1) + ' из ' + str(len(data)) + '\n' + l[0] + str(row['Фамилия']) + '\n' + l[1] + str(
                 row['Табельный номер']) + '\n' + l[2] + str(row['Направление']) + '\n' + l[3] + str(
                 row['Описание проблемы']) + '\n' + l[4] + str(row['Предложение по решению']) + '\n\n'
+    if which == len(data) - 1:
+        q = 2
+    elif which == 0:
+        q = 1
+    else:
+        q = 0
     bot.edit_message_text(s, chat_id=who,
                           message_id=mes, reply_markup=make_keyboard_2(type=q))
 
@@ -121,7 +126,7 @@ def reaction(call):
         menu(who)
     elif c == 'оценкалайт':
         show_res(mes, who)
-    elif c[0] == '0':
+    elif c[0] == '0': # выбор блока
         time = pd.read_csv('files/time.csv', sep=';', header=[0], encoding='cp1251')
         time = time.loc[time['id'] != who]
         time.loc[len(time)] = [int(who), c[1:], no_value, no_value]
@@ -129,21 +134,21 @@ def reaction(call):
         # bot.send_message(who, 'Опишите проблему в одном сообщении:')
         bot.edit_message_text('Опишите проблему в одном сообщении:', chat_id=who,
                               message_id=mes)
-    elif c[0] == '1':
+    elif c[0] == '1': # Редактирование блока
         time = pd.read_csv('files/time.csv', sep=';', header=[0], encoding='cp1251')
         time.loc[time['id'] == who, 'Куда'] = c[1:]
         time.to_csv('files/time.csv', sep=';', index=False, encoding='cp1251')
         prover(who)
-    elif c == 'ideaY':
+    elif c == 'ideaY':  # идеи решения есть
         # bot.send_message(who, 'Опишите предложение по решению в одном сообщении:')
         bot.edit_message_text('Опишите предложение по решению в одном сообщении:', chat_id=who,
                               message_id=mes)
-    elif c == 'ideaN':
+    elif c == 'ideaN':  # идеи решения нет
         time = pd.read_csv('files/time.csv', sep=';', header=[0], encoding='cp1251')
         time.loc[time['id'] == who, 'Идея'] = 'Предложений нет'
         time.to_csv('files/time.csv', sep=';', index=False, encoding='cp1251')
         prover(who)
-    elif c == 'end':
+    elif c == 'end': # запись в файл
         end = pd.read_csv('data_base.csv', sep=';', header=[0], encoding='cp1251')
         time = pd.read_csv('files/time.csv', sep=';', header=[0], encoding='cp1251')
         status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
@@ -164,13 +169,13 @@ def reaction(call):
                               message_id=mes)
         menu(who)
 
-    elif c == 'notend':
+    elif c == 'notend': # редактирование меню
         change = {'Решение проблемы': 'решение', 'Проблема': 'проблема', 'Блок': 'workplace', 'Фамилия': 'фамилия',
                   'Табельный номер': 'табельный номер'}
         # bot.send_message(who, 'Что хотите изменить?', reply_markup=make_keyboard(change))
         bot.edit_message_text('Что хотите изменить?', chat_id=who,
                               message_id=mes, reply_markup=make_keyboard(change))
-    elif c == 'workplace':
+    elif c == 'workplace': # редактирование место подачи
         blocks = {
             'Закупки МТР': '1Закупки МТР',
             'Управлению инфраструктурой': '1Управлению инфраструктурой',
@@ -188,30 +193,30 @@ def reaction(call):
         # bot.send_message(who, "Выбирете новое место подачи", reply_markup=make_keyboard(blocks))
         bot.edit_message_text("Выбирете новое место подачи", chat_id=who,
                               message_id=mes, reply_markup=make_keyboard(blocks))
-    elif c == 'решение':
+    elif c == 'решение': # редактирование
         time = pd.read_csv('files/time.csv', sep=';', header=[0], encoding='cp1251')
         time.loc[time['id'] == who, 'Идея'] = redactor
         time.to_csv('files/time.csv', sep=';', index=False, encoding='cp1251')
         # bot.send_message(who, "Опишите решение проблемы одним сообщением")
         bot.edit_message_text("Опишите решение проблемы одним сообщением", chat_id=who, message_id=mes)
-    elif c == 'проблема':
+    elif c == 'проблема': # редактирование
         time = pd.read_csv('files/time.csv', sep=';', header=[0], encoding='cp1251')
         time.loc[time['id'] == who, 'Проблема'] = redactor
         time.to_csv('files/time.csv', sep=';', index=False, encoding='cp1251')
         # bot.send_message(who, "Опишите проблему одним сообщением")
         bot.edit_message_text("Опишите решение проблемы одним сообщением", chat_id=who, message_id=mes)
-    elif c == 'фамилия':
+    elif c == 'фамилия': # редактирование
         bot.send_message(who, 'не повезло')
-    elif c == 'табельный номер':
+    elif c == 'табельный номер': # редактирование
         bot.send_message(who, 'беда')
-
+    # оценка
     elif c == "like":
         bot.answer_callback_query(call.id)
         data = pd.read_csv('data_base.csv', sep=';', header=[0], encoding='cp1251')
         status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
         index = status.loc[status['id'] == who]['Статус'].values[0]
         data.at[index, 'За принятие'] += 1
-        if status.loc[status['id'] == who]['Статус'].values[0] < len(data)-1:
+        if status.loc[status['id'] == who]['Статус'].values[0] < len(data) - 1:
             status.loc[status['id'] == who, 'Статус'] += 1
         data.to_csv('data_base.csv', sep=';', index=False, encoding='cp1251')
         status.to_csv('files/status.csv', sep=';', index=False, encoding='cp1251')
@@ -222,7 +227,7 @@ def reaction(call):
         status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
         index = status.loc[status['id'] == who]['Статус'].values[0]
         data.at[index, 'Против принятия'] += 1
-        if status.loc[status['id'] == who]['Статус'].values[0] < len(data)-1:
+        if status.loc[status['id'] == who]['Статус'].values[0] < len(data) - 1:
             status.loc[status['id'] == who, 'Статус'] += 1
         data.to_csv('data_base.csv', sep=';', index=False, encoding='cp1251')
         status.to_csv('files/status.csv', sep=';', index=False, encoding='cp1251')
@@ -238,7 +243,7 @@ def reaction(call):
 
     elif c == 'last':
         status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
-        if status.loc[status['id'] == who][ 'Статус'].values[0] > 0:
+        if status.loc[status['id'] == who]['Статус'].values[0] > 1:
             status.loc[status['id'] == who, 'Статус'] -= 1
         status.to_csv('files/status.csv', sep=';', index=False, encoding='cp1251')
         bot.answer_callback_query(call.id)
@@ -270,19 +275,16 @@ def send_mes(message):
     status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
     start_menu = {'Подать по чужому блоку': 'подача', 'Подать по своему блоку': 'подача фаст',
                   'Посмотреть': "результаты", "Оценить": 'оценкалайт'}
-
     # Todo: возможноcть копировать из статуса значения
     # Todo: Фамилия и имя
-    if who not in status['id'].values:
+    if who not in status['id'].values:  # проверка пользовался или нет
         people = pd.read_csv('people.csv', sep=';', header=[0], encoding='cp1251')
         names = people.loc[people['Фамилия'] == t.strip()]['Фамилия'].values
-
         if len(names) == 1:
-
             status.loc[len(status)] = [int(who), names[0],
                                        people.loc[people['Фамилия'] == t.strip()]['Имя'].values[0],
                                        int(people.loc[people['Фамилия'] == t.strip()]['Табельный номер'].values[0]),
-                                       people.loc[people['Фамилия'] == t.strip()]['Место работы'].values[0], 0]
+                                       people.loc[people['Фамилия'] == t.strip()]['Место работы'].values[0], 1]
             status.to_csv('files/status.csv', sep=';', index=False, encoding='cp1251')
             n = people.loc[people['Фамилия'] == t.strip()]['Место работы'].values[0]
             bot.send_message(who,
