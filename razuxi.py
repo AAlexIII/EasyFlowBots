@@ -16,7 +16,7 @@ def make_keyboard(d: dict):
 
 def menu(who):
     start_menu = {'Подать РАЦ Предложение': 'подача',
-                  'Посмотреть': "результаты", "Оценить": 'оценкалайт'}
+                  'Подать рац. предложение': "результаты", "Оценить предложения": 'оценкалайт'}
     bot.send_message(who, "Выбирете дальнейшие действие:", reply_markup=make_keyboard(start_menu))
 
 
@@ -38,10 +38,10 @@ def prover(who):
     blok = time.loc[time['id'] == who]['Куда'].values[0]
     problem = time.loc[time['id'] == who]['Проблема'].values[0]
     idea = time.loc[time['id'] == who]['Идея'].values[0]
-    chek = f'Фамилия: {name}\nТабельный номер: {num}\nБлок: {blok}\nПроблема: {problem}\nРешение: {idea}'
+    chek = f'**Фамилия: **{name}\n**Табельный номер: **{num}\n**Блок: **{blok}\n**Проблема: **{problem}\n**Решение: **{idea}'
     bot.send_message(who, chek)
     end = {'Да': 'end', 'Нет': 'notend'}
-    bot.send_message(who, 'Всё ли представленно верно?', reply_markup=make_keyboard(end))
+    bot.send_message(who, 'Всё ли представлено верно?', reply_markup=make_keyboard(end))
 
 
 def show_res(mes, who):
@@ -50,9 +50,10 @@ def show_res(mes, who):
     which = status.loc[status['id'] == who]['Статус'].values[0]
     if which == len(data):
         q = 0
-        s = 'Предложений больше нет'
+        s = 'Вы оценили все предложения.'
     else:
-        l = ['Фамилия: ', 'Табельный номер: ', 'Направление: ', 'Описание проблемы: ', 'Предложение по решению: ']
+        l = ['**Фамилия: **', '**Табельный номер: **', '**Направление: **', '**Описание проблемы: **',
+             '**Предложение по решению: **']
         s = ''
         for index, row in data.iterrows():
             if index == which:
@@ -152,8 +153,8 @@ def reaction(call):
         # time = time.drop(pd.where(time['id'] == who)[0])
         time = time.loc[time['id'] != who]
         time.to_csv('files/time.csv', sep=';', index=False, encoding='cp1251')
-        start_menu = {'Подать РАЦ Предложение': 'подача',
-                      'Посмотреть': "результаты", "Оценить": 'оценкалайт'}
+        #start_menu = {'Подать РАЦ Предложение': 'подача',
+        #             'Посмотреть': "результаты", "Оценить предложения": 'оценкалайт'}
         # bot.send_message(who, 'Ваше предложение записанно', reply_markup=make_keyboard(start_menu))
         bot.edit_message_text('Ваше предложение записано', chat_id=who,
                               message_id=mes)
@@ -257,8 +258,8 @@ def reaction(call):
 def start(message):
     who = message.chat.id
     status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
-    start_menu = {'Подать РАЦ Предложение': 'подача',
-                  'Посмотреть': "результаты", "Оценить": 'оценкалайт'}
+    start_menu = {'Подать рац. предложение': 'подача',
+                  'Посмотреть': "результаты", "Оценить предложения": 'оценкалайт'}
     if who not in status['id'].values:
         bot.send_message(message.chat.id, 'Напишите вашу фамилию')
     else:
@@ -271,8 +272,8 @@ def send_mes(message):
     t = message.text
     who = message.chat.id
     status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
-    start_menu = {'Подать РАЦ Предложение': 'подача',
-                  'Посмотреть': "результаты", "Оценить": 'оценкалайт'}
+    start_menu = {'Подать рац. предложение': 'подача',
+                  'Посмотреть': "результаты", "Оценить предложения": 'оценкалайт'}
     # Todo: возможноcть копировать из статуса значения
     # Todo: Фамилия и имя
     if who not in status['id'].values:  # проверка пользовался или нет
