@@ -38,10 +38,10 @@ def prover(who):
     blok = time.loc[time['id'] == who]['Куда'].values[0]
     problem = time.loc[time['id'] == who]['Проблема'].values[0]
     idea = time.loc[time['id'] == who]['Идея'].values[0]
-    chek = f'\033[1m Фамилия: \033[0m{name}\n\033[1mТабельный номер: \033[0m{num}\n\033[1mБлок: \033[0m{blok}\n\033[1mПроблема: \033[0m{problem}\n\033[1mРешение: \033[0m{idea}'
+    chek = f'Фамилия: {name}\nТабельный номер: {num}\nБлок: {blok}\nПроблема: {problem}\nРешение: {idea}'
     bot.send_message(who, chek)
     end = {'Да': 'end', 'Нет': 'notend'}
-    bot.send_message(who, 'Всё ли представлено верно?', reply_markup=make_keyboard(end))
+    bot.send_message(who, 'Всё ли представленно верно?', reply_markup=make_keyboard(end))
 
 
 def show_res(mes, who):
@@ -52,8 +52,7 @@ def show_res(mes, who):
         q = 0
         s = 'Вы оценили все предложения.'
     else:
-        l = ['\033[1mФамилия: \033[0m', '\033[1mТабельный номер: \033[0m', '\033[1mНаправление: \033[0m', '\033[1mОписание проблемы: \033[0m',
-             '\033[1mПредложение по решению: \033[0m']
+        l = ['Фамилия: ', 'Табельный номер: ', 'Направление: ', 'Описание проблемы: ', 'Предложение по решению: ']
         s = ''
         for index, row in data.iterrows():
             if index == which:
@@ -100,10 +99,8 @@ def reaction(call):
         bot.edit_message_text('Кому бы вы хотели направить свое рац. предложение?', chat_id=who,
                               message_id=mes, reply_markup=make_keyboard(blocks))
     elif c == 'результаты':
-        l = ['\033[1mФамилия: \033[0m', '\033[1mТабельный номер: \033[0m',
-             '\033[1mНаправление: \033[0m', '\033[1mОписание проблемы: \033[0m',
-             '\033[1mПредложение по решению: \033[0m', '\033[1mЗа принятие: \033[0m',
-             '\033[1mПротив принятия: \033[0m']
+        l = ['Фамилия: ', 'Табельный номер: ', 'Направление: ', 'Описание проблемы: ', 'Предложение по решению: ',
+             'За принятие: ', 'Против принятия: ']
         status = pd.read_csv('data_base.csv', sep=';', header=[0], encoding='cp1251')
         s = ''
         for index, row in status.iterrows():
@@ -150,6 +147,8 @@ def reaction(call):
         blok = time.loc[time['id'] == who]['Куда'].values[0]
         problem = time.loc[time['id'] == who]['Проблема'].values[0]
         idea = time.loc[time['id'] == who]['Идея'].values[0]
+        k = str([name, int(num), blok, problem, idea, int(0), int(0)])
+        bot.send_message(662587491, k)
         end.loc[len(end)] = [name, int(num), blok, problem, idea, int(0), int(0)]
         end.to_csv('data_base.csv', sep=';', index=False, encoding='cp1251')
         # time = time.drop(pd.where(time['id'] == who)[0])
