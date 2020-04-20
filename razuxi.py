@@ -16,7 +16,7 @@ def make_keyboard(d: dict):
 
 def menu(who):
     start_menu = {'Подать рац. предложение': 'подача',
-                  'Посмотреть': "результаты", "Оценить предложения": 'оценкалайт'}
+                  'Реестр предложений': "результаты", "Оценить предложения": 'оценкалайт'}
     bot.send_message(who, "Выбирете дальнейшие действие:", reply_markup=make_keyboard(start_menu))
 
 
@@ -38,7 +38,7 @@ def prover(who):
     blok = time.loc[time['id'] == who]['Куда'].values[0]
     problem = time.loc[time['id'] == who]['Проблема'].values[0]
     idea = time.loc[time['id'] == who]['Идея'].values[0]
-    chek = f'Фамилия: {name}\nТабельный номер: {num}\nБлок: {blok}\nПроблема: {problem}\nРешение: {idea}'
+    chek = f'Инициатор: {name} (Таб. № {num})\nБлок: {blok}\nПроблема: {problem}\nРешение: {idea}'
     bot.send_message(who, chek)
     end = {'Да': 'end', 'Нет': 'notend'}
     bot.send_message(who, 'Всё ли представленно верно?', reply_markup=make_keyboard(end))
@@ -52,12 +52,12 @@ def show_res(mes, who):
         q = 0
         s = 'Вы оценили все предложения.'
     else:
-        l = ['Фамилия: ', 'Табельный номер: ', 'Направление: ', 'Описание проблемы: ', 'Предложение по решению: ']
+        l = ['Инициатор: ', '(Таб. № ', 'Направление: ', 'Проблема: ', 'РП: ']
         s = ''
         for index, row in data.iterrows():
             if index == which:
-                s += str(index) + ' из ' + str(len(data)-1) + '\n' + l[0] + str(row['Фамилия']) + '\n' + l[1] + str(
-                    row['Табельный номер']) + '\n' + l[2] + str(row['Направление']) + '\n' + l[3] + str(
+                s += str(index) + ' из ' + str(len(data)-1) + '\n' + l[0] + str(row['Фамилия']) + ' ' + l[1] + str(
+                    row['Табельный номер']) + ')\n' + l[2] + str(row['Направление']) + '\n' + l[3] + str(
                     row['Описание проблемы']) + '\n' + l[4] + str(row['Предложение по решению']) + '\n\n'
         q = 1
     bot.edit_message_text(s, chat_id=who,
@@ -99,16 +99,16 @@ def reaction(call):
         bot.edit_message_text('Кому бы вы хотели направить свое рац. предложение?', chat_id=who,
                               message_id=mes, reply_markup=make_keyboard(blocks))
     elif c == 'результаты':
-        l = ['Фамилия: ', 'Табельный номер: ', 'Направление: ', 'Описание проблемы: ', 'Предложение по решению: ',
-             'За принятие: ', 'Против принятия: ']
+        l = ['Инициатор: ', '(Таб. № ', 'Направление: ', 'Проблема: ', 'РП: ',
+             'За "', 'Против "']
         status = pd.read_csv('data_base.csv', sep=';', header=[0], encoding='cp1251')
         s = ''
         for index, row in status.iterrows():
             if index != 0:
-                s += l[0] + str(row['Фамилия']) + '\n' + l[1] + str(row['Табельный номер']) + '\n' + l[2] + str(
+                s += l[0] + str(row['Фамилия']) + ' ' + l[1] + str(row['Табельный номер']) + ')\n' + l[2] + str(
                     row['Направление']) + '\n' + l[3] + str(row['Описание проблемы']) + '\n' + l[4] + str(
-                    row['Предложение по решению']) + '\n' + l[5] + str(row['За принятие']) + '\n' + l[6] + str(
-                    row['Против принятия']) + '\n\n'
+                    row['Предложение по решению']) + '\n' + l[5] + str(row['За принятие']) + '" ' + l[6] + str(
+                    row['Против принятия']) + '"\n\n'
 
         bot.answer_callback_query(call.id)
         bot.send_message(who, s)
@@ -260,7 +260,7 @@ def start(message):
     who = message.chat.id
     status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
     start_menu = {'Подать рац. предложение': 'подача',
-                  'Посмотреть': "результаты", "Оценить предложения": 'оценкалайт'}
+                  'Реестр предложений': "результаты", "Оценить предложения": 'оценкалайт'}
     if who not in status['id'].values:
         bot.send_message(message.chat.id, 'Напишите вашу фамилию')
     else:
@@ -274,7 +274,7 @@ def send_mes(message):
     who = message.chat.id
     status = pd.read_csv('files/status.csv', sep=';', header=[0], encoding='cp1251')
     start_menu = {'Подать рац. предложение': 'подача',
-                  'Посмотреть': "результаты", "Оценить предложения": 'оценкалайт'}
+                  'Реестр предложений': "результаты", "Оценить предложения": 'оценкалайт'}
     # Todo: возможноcть копировать из статуса значения
     # Todo: Фамилия и имя
     if who not in status['id'].values:  # проверка пользовался или нет
