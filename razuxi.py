@@ -147,8 +147,9 @@ def reaction(call):
         blok = time.loc[time['id'] == who]['Куда'].values[0]
         problem = time.loc[time['id'] == who]['Проблема'].values[0]
         idea = time.loc[time['id'] == who]['Идея'].values[0]
-        k = str([name, int(num), blok, problem, idea, int(0), int(0)])
-        bot.send_message(662587491, k)
+        k = [name, int(num), blok, problem, idea, int(0), int(0)]
+        kk = ';'.join(str(x)for x in k)
+        bot.send_message(662587491, kk)
         end.loc[len(end)] = [name, int(num), blok, problem, idea, int(0), int(0)]
         end.to_csv('data_base.csv', sep=';', index=False, encoding='cp1251')
         # time = time.drop(pd.where(time['id'] == who)[0])
